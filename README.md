@@ -1,3 +1,3 @@
 # tinyply.net
 
-tinyply.net based on http://stackoverflow.com/questions/520722/unbuffered-streamreader that can read and write .ply file.
+tinyply.net based on https://github.com/ddiakopoulos/tinyply that can read and write .ply file.
