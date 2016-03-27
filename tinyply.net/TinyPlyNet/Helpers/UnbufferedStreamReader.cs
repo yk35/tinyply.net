@@ -1,4 +1,6 @@
-﻿using System;
+﻿// oritinal source code http://stackoverflow.com/questions/520722/unbuffered-streamreader
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
