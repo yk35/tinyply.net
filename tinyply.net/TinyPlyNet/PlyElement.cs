@@ -8,7 +8,7 @@ using TinyPlyNet.Helpers;
 namespace TinyPlyNet
 {
     /// <summary>
-    /// ply elements
+    /// reprensentation of ply elements
     /// </summary>
     public class PlyElement
     {
@@ -29,7 +29,7 @@ namespace TinyPlyNet
         public PlyElement(string name)
         {
             this.Properties = new List<PlyProperty>();
-            this.Name = string.Empty;
+            this.Name = name;
             this.Size = 0;
         }
 
@@ -43,6 +43,9 @@ namespace TinyPlyNet
         /// </summary>
         public int Size { get; set; }
 
+        /// <summary>
+        /// properties
+        /// </summary>
         public List<PlyProperty> Properties { get; set; }
 
         private void parseInternal(TextReader stream)

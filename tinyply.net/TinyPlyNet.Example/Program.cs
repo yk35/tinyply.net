@@ -34,7 +34,7 @@ namespace TinyPlyNet.Example
                     var writeFile = new PlyFile();
                     writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
                     writeFile.AddListPropertyToElement("face", "vertex_indices", index);
-                    f.Write(writeStream);
+                    writeFile.Write(writeStream);
                 }
             }
         }

@@ -9,51 +9,87 @@ using TinyPlyNet.Helpers;
 
 namespace TinyPlyNet
 {
-
+    /// <summary>
+    /// target for read/write container
+    /// </summary>
     public class DataCursor
     {
         /// <summary>
         /// data source
         /// </summary>
-        public IList vector;
+        public IList vector { get; set; }
 
         /// <summary>
         /// multi vector source
         /// </summary>
-        public bool isMultivector = false;
-    };
+        public bool isMultivector { get; set; }= false;
+    }
 
+    /// <summary>
+    /// read/write ply file
+    /// </summary>
     public class PlyFile
     {
+        /// <summary>
+        /// requested element names name for read
+        /// </summary>
+        private List<string> _requestedElements = new List<string>();
+
+        /// <summary>
+        /// read/write data source
+        /// </summary>
+        private Dictionary<string, DataCursor> _userDataTable = new Dictionary<string, DataCursor>();
+
         /// <summary>
         /// create empty object(for writing)
         /// </summary>
         public PlyFile()
         {
-            Elements = new List<PlyElement>();
-            Comments = new List<string>();
-            ObjInfo = new List<string>();
-            IsBinary = false;
+            this.Elements = new List<PlyElement>();
+            this.Comments = new List<string>();
+            this.ObjInfo = new List<string>();
+            this.IsBinary = false;
         }
 
         /// <summary>
         /// create for ply reading
         /// </summary>
-        /// <param name="stream"></param>
+        /// <param name="stream">stream of .ply file</param>
         public PlyFile(Stream stream)
         {
-            Elements = new List<PlyElement>();
-            Comments = new List<string>();
-            ObjInfo = new List<string>();
-            IsBinary = false;
+            this.Elements = new List<PlyElement>();
+            this.Comments = new List<string>();
+            this.ObjInfo = new List<string>();
+            this.IsBinary = false;
             var reader = new UnbufferedStreamReader(stream);
             this.ParseHeader(reader);
         }
 
         /// <summary>
+        /// comments
+        /// </summary>
+        public List<string> Comments { get; set; }
+
+        /// <summary>
+        /// elements
+        /// </summary>
+        public List<PlyElement> Elements { get; set; }
+        
+        /// <summary>
+        /// object information
+        /// </summary>
+        public List<string> ObjInfo { get; set; }
+
+        /// <summary>
+        /// is binary format?(currentry not supported)
+        /// </summary>
+        public bool IsBinary { get; set; }
+
+
+        /// <summary>
         /// read ply from stream
         /// </summary>
-        /// <param name="stream"></param>
+        /// <param name="stream">stream of .ply file</param>
         public void Read(Stream stream)
         {
             this.ReadInternal(stream);
@@ -62,22 +98,13 @@ namespace TinyPlyNet
         /// <summary>
         /// write ply to stream
         /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="isBinary"></param>
+        /// <param name="stream">stream of .ply file</param>
+        /// <param name="isBinary">write to binary format</param>
         public void Write(Stream stream, bool isBinary = false)
         {
             this.IsBinary = isBinary;
             this.WriteInternal(stream);
         }
-
-
-        List<PlyElement> Elements { get; set; }
-
-        List<string> Comments { get; set; }
-
-        List<string> ObjInfo { get; set; }
-
-        public bool IsBinary { get; set; }
 
         /// <summary>
         /// request read property from elements
@@ -85,9 +112,9 @@ namespace TinyPlyNet
         /// <typeparam name="T">data type</typeparam>
         /// <param name="elementKey">element key(ex. vertex)</param>
         /// <param name="propertyKeys">element properties(ex. "x","y","z")</param>
-        /// <param name="source">read/write collection source</param>
-        /// <returns></returns>
-        public int RequestPropertyFromElement<T>(string elementKey, IEnumerable<string> propertyKeys, List<T> source)
+        /// <param name="data">collection that stored reading data</param>
+        /// <returns>number of element datas</returns>
+        public int RequestPropertyFromElement<T>(string elementKey, IEnumerable<string> propertyKeys, List<T> data)
         {
             if (!this.Elements.Any())
             {
@@ -96,9 +123,9 @@ namespace TinyPlyNet
 
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
-                if (!_requestedElements.Contains(elementKey))
+                if (!this._requestedElements.Contains(elementKey))
                 {
-                    _requestedElements.Add(elementKey);
+                    this._requestedElements.Add(elementKey);
                 }
             }
             else
@@ -144,11 +171,12 @@ namespace TinyPlyNet
                 {
                     instanceCounts.Add(instanceCount);
                     var userKey = Helper.MakeKey(elementKey, key);
-                    if (_userDataTable.ContainsKey(userKey))
+                    if (this._userDataTable.ContainsKey(userKey))
                     {
                         throw new Exception("property has already been requested: " + key);
                     }
-                    _userDataTable[userKey] = cursor;
+
+                    this._userDataTable[userKey] = cursor;
                 }
                 else
                 {
@@ -156,7 +184,7 @@ namespace TinyPlyNet
                 }
             }
             var totalInstanceSize = instanceCounts.Sum(x => x);
-            cursor.vector = source;
+            cursor.vector = data;
             return totalInstanceSize / propertyKeyList.Count;
         }
 
@@ -164,11 +192,10 @@ namespace TinyPlyNet
         /// request read list property from elements
         /// </summary>
         /// <typeparam name="T">data type</typeparam>
-        /// <param name="elementKey">element key(ex. vertex)</param>
-        /// <param name="propertyKeys">element properties(ex. "x","y","z")</param>
-        /// <param name="source">read/write collection source</param>
-        /// <returns></returns>
-        public void RequestListPropertyFromElement<T>(string elementKey, string propertyKey, List<List<T>> source)
+        /// <param name="elementKey">element key(ex. face)</param>
+        /// <param name="propertyKey">element properties(ex. vertex_indices)</param>
+        /// <param name="data">collection that stored reading data</param>
+        public void RequestListPropertyFromElement<T>(string elementKey, string propertyKey, List<List<T>> data)
         {
             if (!this.Elements.Any())
             {
@@ -177,9 +204,9 @@ namespace TinyPlyNet
 
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
-                if (!_requestedElements.Contains(elementKey))
+                if (!this._requestedElements.Contains(elementKey))
                 {
-                    _requestedElements.Add(elementKey);
+                    this._requestedElements.Add(elementKey);
                 }
             }
             else
@@ -195,62 +222,21 @@ namespace TinyPlyNet
                 throw new Exception("property has already been requested: " + propertyKey);
             }
             this._userDataTable[userKey] = cursor;
-            cursor.vector = source;
+            cursor.vector = data;
             cursor.isMultivector = true;
         }
 
-
-        private void ParseHeader(TextReader stream)
-        {
-            bool gotMagic = false;
-            for (;;)
-            {
-                var line = stream.ReadLine();
-                using (var ls = new StringReader(line))
-                {
-                    var token = ls.ReadWord();
-                    if (token == "ply" || token == "PLY" || string.IsNullOrEmpty(token))
-                    {
-                        gotMagic = true;
-                        continue;
-                    }
-                    else if (token == "comment")
-                    {
-                        ReadHeaderText(ls, Comments);
-                    }
-                    else if (token == "format")
-                    {
-                        ReadHeaderFormat(ls);
-                    }
-                    else if (token == "element")
-                    {
-                        ReadHeaderElement(ls);
-                    }
-                    else if (token == "property")
-                    {
-                        ReadHeaderProperty(ls);
-                    }
-                    else if (token == "obj_info")
-                    {
-                        ReadHeaderText(ls, ObjInfo);
-                    }
-                    else if (token == "end_header")
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        throw new Exception("invalid header");
-                    }
-
-                }
-            }
-        }
-
+        /// <summary>
+        /// add to property data for writing
+        /// </summary>
+        /// <typeparam name="T">property data type</typeparam>
+        /// <param name="elementKey">element name</param>
+        /// <param name="propertyKeys">property name</param>
+        /// <param name="data">collection that stored writing data</param>
         public void AddPropertiesToElement<T>(
             string elementKey,
             IEnumerable<string> propertyKeys,
-            List<T> source)
+            List<T> data)
         {
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
@@ -261,37 +247,51 @@ namespace TinyPlyNet
 
             var cursor = new DataCursor();
             var plyElement = new PlyElement(elementKey);
-            plyElement.Size = source.Count / propertyKeyList.Count;
+            plyElement.Size = data.Count / propertyKeyList.Count;
             foreach (var key in propertyKeyList)
             {
                 var plyProperty = new PlyProperty(typeof(T), key);
                 plyElement.Properties.Add(plyProperty);
                 var userKey = Helper.MakeKey(elementKey, key);
-                if (_userDataTable.ContainsKey(userKey))
+                if (this._userDataTable.ContainsKey(userKey))
                 {
                     throw new Exception("property has already been requested: " + key);
                 }
-                _userDataTable[userKey] = cursor;
+
+                this._userDataTable[userKey] = cursor;
             }
             this.Elements.Add(plyElement);
-            cursor.vector = source;
+            cursor.vector = data;
         }
 
+        /// <summary>
+        /// add to property data for writing
+        /// </summary>
+        /// <typeparam name="T">property data type</typeparam>
+        /// <param name="elementKey">element name</param>
+        /// <param name="propertyKey">list property name</param>
+        /// <param name="data">collection that stored writing data. data is multi dimentional list.</param>
         public void AddListPropertyToElement<T>(
             string elementKey,
             string propertyKey,
-            List<List<T>> data
-        )
+            List<List<T>> data)
         {
             this.AddListPropertyToElement(elementKey, propertyKey, data, typeof(ushort));
         }
 
+        /// <summary>
+        /// add to property data for writing
+        /// </summary>
+        /// <typeparam name="T">property data type</typeparam>
+        /// <param name="elementKey">element name</param>
+        /// <param name="propertyKey">list property name</param>
+        /// <param name="data">collection that stored writing data. data is multi dimentional list.</param>
+        /// <param name="listCountType">type of number of property</param>
         public void AddListPropertyToElement<T>(
             string elementKey,
             string propertyKey,
             List<List<T>> data,
-            Type listCountType
-            )
+            Type listCountType)
         {
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
@@ -304,7 +304,7 @@ namespace TinyPlyNet
             var plyProperty = new PlyProperty(listCountType, typeof(T), propertyKey);
             plyElement.Properties.Add(plyProperty);
             var userKey = Helper.MakeKey(elementKey, propertyKey);
-            if (_userDataTable.ContainsKey(userKey))
+            if (this._userDataTable.ContainsKey(userKey))
             {
                 throw new Exception("property has already been requested: " + propertyKey);
             }
@@ -457,6 +457,54 @@ namespace TinyPlyNet
             }
             sr.DiscardBufferedData();
         }
+       
+        private void ParseHeader(TextReader stream)
+        {
+            bool gotMagic = false;
+            for (;;)
+            {
+                var line = stream.ReadLine();
+                using (var ls = new StringReader(line))
+                {
+                    var token = ls.ReadWord();
+                    if (token == "ply" || token == "PLY" || string.IsNullOrEmpty(token))
+                    {
+                        gotMagic = true;
+                        continue;
+                    }
+                    else if (token == "comment")
+                    {
+                        ReadHeaderText(ls, Comments);
+                    }
+                    else if (token == "format")
+                    {
+                        ReadHeaderFormat(ls);
+                    }
+                    else if (token == "element")
+                    {
+                        ReadHeaderElement(ls);
+                    }
+                    else if (token == "property")
+                    {
+                        ReadHeaderProperty(ls);
+                    }
+                    else if (token == "obj_info")
+                    {
+                        ReadHeaderText(ls, ObjInfo);
+                    }
+                    else if (token == "end_header")
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        throw new Exception("invalid header");
+                    }
+
+                }
+            }
+        }
+
         #endregion reader
 
         #region writer
@@ -471,6 +519,12 @@ namespace TinyPlyNet
             else
             {
                 writer.WriteLine("format ascii 1.0");
+            }
+
+            // write comments
+            foreach (var comment in this.Comments)
+            {
+                writer.WriteLine($"comment {comment}");
             }
 
             // write each elements
@@ -548,19 +602,6 @@ namespace TinyPlyNet
                 }
             }
         }
-
-        struct PropertyLookup
-        {
-            public DataCursor DataCursor { get; set; }
-            public bool Skip => this.DataCursor != null;
-
-            public int ListStride { get; set; }
-            public int PropertyStride { get; set; }
-        }
-
         #endregion
-
-        private List<string> _requestedElements = new List<string>();
-        Dictionary<string, DataCursor> _userDataTable = new Dictionary<string, DataCursor>();
     }
 }

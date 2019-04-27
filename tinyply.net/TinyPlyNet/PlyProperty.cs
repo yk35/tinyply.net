@@ -8,7 +8,7 @@ using TinyPlyNet.Helpers;
 namespace TinyPlyNet
 {
     /// <summary>
-    /// ply elements
+    /// reprensentation of ply property
     /// </summary>
     public class PlyProperty
     {
@@ -37,15 +37,15 @@ namespace TinyPlyNet
         /// <summary>
         ///  create list property info by data type and name(for writing)
         /// </summary>
-        /// <param name="list_type">property list type</param>
-        /// <param name="prop_type">property type</param>
+        /// <param name="listType">number of property list type</param>
+        /// <param name="propType">property type</param>
         /// <param name="name">propety name</param>
         /// <param name="listCount">number of list</param>
-        public PlyProperty(Type list_type, Type prop_type, string name)
+        public PlyProperty(Type listType, Type propType, string name)
         {
             IsList = true;
-            ListType = list_type;
-            PropertyType = prop_type;
+            ListType = listType;
+            PropertyType = propType;
             Name = name;
         }
 
