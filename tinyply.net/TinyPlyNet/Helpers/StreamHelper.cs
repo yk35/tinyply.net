@@ -16,10 +16,10 @@ namespace TinyPlyNet.Helpers
 
         public static string ReadWord(this TextReader stream, Encoding encoding)
         {
-            string word = "";
+            string word = string.Empty;
 
             // skip whitespace
-            while (stream.Peek() > 0 && Char.IsWhiteSpace((char)stream.Peek()))
+            while (stream.Peek() > 0 && char.IsWhiteSpace((char)stream.Peek()))
             {
                 stream.Read();
             }
@@ -31,10 +31,10 @@ namespace TinyPlyNet.Helpers
                             // convert read bytes to char
                    var chr = encoding.GetChars(BitConverter.GetBytes(c)).First();
 
-                   if (c == -1 || Char.IsWhiteSpace(chr))
-                       return -1; //signal end of word
+                   if (c == -1 || char.IsWhiteSpace(chr))
+                       return -1; // signal end of word
                    else
-                       word = word + chr; //append the char to our word
+                       word = word + chr; // append the char to our word
 
                    return c;
                }) > -1) ;  // end while(stream.Read() if char returned is -1
@@ -77,7 +77,7 @@ namespace TinyPlyNet.Helpers
             return parse.Invoke(null, new[] { w });
         }
 
-        public static unsafe void ReadData(this TextReader stream, Type t, Array dst, ref int offset)
+        public static void ReadData(this TextReader stream, Type t, Array dst, ref int offset)
         {
             var w = stream.ReadWord();
             var size = Marshal.SizeOf(t);
