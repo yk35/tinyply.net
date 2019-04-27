@@ -43,6 +43,16 @@ namespace TinyPlyNet
             return a + "-" + b;
         }
 
+        /// <summary>
+        /// make unique key
+        /// </summary>
+        /// <param name="element">element</param>
+        /// <param name="property">property</param>
+        /// <returns>{elementName}-{propertyName}</returns>
+        public static string MakeKey(PlyElement element, PlyProperty property)
+        {
+            return MakeKey(element.Name, property.Name);
+        }
 
     }
 }

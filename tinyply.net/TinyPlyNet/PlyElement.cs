@@ -7,32 +7,48 @@ using TinyPlyNet.Helpers;
 
 namespace TinyPlyNet
 {
+    /// <summary>
+    /// ply elements
+    /// </summary>
     public class PlyElement
     {
+        /// <summary>
+        /// create from stream(for reading)
+        /// </summary>
+        /// <param name="stream"></param>
         public PlyElement(TextReader stream)
         {
             Properties = new List<PlyProperty>();
             parseInternal(stream);
         }
 
-        public PlyElement(string name, int count)
+        /// <summary>
+        /// create by element name(for writing)
+        /// </summary>
+        /// <param name="name"></param>
+        public PlyElement(string name)
         {
-            Properties = new List<PlyProperty>();
-            Name = string.Empty;
-            Size = 0;
-
+            this.Properties = new List<PlyProperty>();
+            this.Name = string.Empty;
+            this.Size = 0;
         }
 
+        /// <summary>
+        /// element name
+        /// </summary>
         public string Name { get; set; }
 
-        public uint Size { get; set; }
+        /// <summary>
+        /// number of element values
+        /// </summary>
+        public int Size { get; set; }
 
         public List<PlyProperty> Properties { get; set; }
 
         private void parseInternal(TextReader stream)
         {
             Name = stream.ReadWord();
-            Size = uint.Parse(stream.ReadWord());
+            Size = int.Parse(stream.ReadWord());
         }
     }
 }

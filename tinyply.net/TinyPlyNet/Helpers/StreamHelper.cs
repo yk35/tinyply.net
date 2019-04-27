@@ -46,6 +46,8 @@ namespace TinyPlyNet.Helpers
             return f(obj);
         }
 
+        #region read
+        #region binary read
         public static object ReadData(this BinaryReader stream, Type t)
         {
             var size = Marshal.SizeOf(t);
@@ -69,7 +71,9 @@ namespace TinyPlyNet.Helpers
             byte[] buf = new byte[size];
             stream.Read(buf, 0, size);
         }
+        #endregion
 
+        #region text read
         public static object ReadData(this TextReader stream, Type t)
         {
             var w = stream.ReadWord();
@@ -77,21 +81,26 @@ namespace TinyPlyNet.Helpers
             return parse.Invoke(null, new[] { w });
         }
 
-        public static void ReadData(this TextReader stream, Type t, Array dst, ref int offset)
-        {
-            var w = stream.ReadWord();
-            var size = Marshal.SizeOf(t);
-            byte[] buf = new byte[size];
-            var parse = t.GetMethod("Parse", new[] { typeof(string) });
-            var v = parse.Invoke(null, new[] { w });
-            var bytes = ByteHelper.ToByteArray(v);
-            Buffer.BlockCopy(buf, 0, dst, offset, size);
-            offset += size;
-        }
-
         public static void SkipData(this TextReader stream, Type t)
         {
             var w = stream.ReadWord();
         }
+        #endregion
+        #endregion read
+
+        #region write
+        #region write binary
+        #endregion
+
+        #region write text
+        public static void WriteData<T>(this TextWriter stream, T value)
+        {
+            stream.Write(value);
+            stream.Write(" ");
+        }
+
+        #endregion
+        #endregion
+
     }
 }
