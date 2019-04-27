@@ -7,13 +7,27 @@ using System.Text;
 
 namespace TinyPlyNet.Helpers
 {
+    /// <summary>
+    /// stream helper
+    /// </summary>
     public static class StreamHelper
     {
+        /// <summary>
+        /// read 1 word
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <returns>word string</returns>
         public static string ReadWord(this TextReader stream)
         {
             return stream.ReadWord(Encoding.UTF8);
         }
 
+        /// <summary>
+        /// read 1 word
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <param name="encoding">char encoding</param>
+        /// <returns>word string</returns>
         public static string ReadWord(this TextReader stream, Encoding encoding)
         {
             string word = string.Empty;
@@ -37,10 +51,17 @@ namespace TinyPlyNet.Helpers
                        word = word + chr; // append the char to our word
 
                    return c;
-               }) > -1) ;  // end while(stream.Read() if char returned is -1
+               }) > -1) ; // end while(stream.Read() if char returned is -1
             return word;
         }
 
+        /// <summary>
+        /// convertion function 
+        /// </summary>
+        /// <typeparam name="T">target object type</typeparam>
+        /// <param name="obj">src object</param>
+        /// <param name="f">dst object</param>
+        /// <returns>converted object</returns>
         public static T With<T>(this T obj, Func<T, T> f)
         {
             return f(obj);
@@ -48,6 +69,12 @@ namespace TinyPlyNet.Helpers
 
         #region read
         #region binary read
+        /// <summary>
+        /// read data
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <param name="t">read data type</param>
+        /// <returns>readed object</returns>
         public static object ReadData(this BinaryReader stream, Type t)
         {
             var size = Marshal.SizeOf(t);
@@ -56,15 +83,11 @@ namespace TinyPlyNet.Helpers
             return ByteHelper.FromByteArray(buf, t);
         }
 
-        public static void ReadData(this BinaryReader stream, Type t, Array dst, ref int offset)
-        {
-            var size = Marshal.SizeOf(t);
-            byte[] buf = new byte[size];
-            stream.Read(buf, 0, size);
-            Buffer.BlockCopy(buf, 0, dst, offset, size);
-            offset += size;
-        }
-
+        /// <summary>
+        /// skipped data
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <param name="t">read data type</param>
         public static void SkipData(this BinaryReader stream, Type t)
         {
             var size = Marshal.SizeOf(t);
@@ -74,13 +97,24 @@ namespace TinyPlyNet.Helpers
         #endregion
 
         #region text read
+        /// <summary>
+        /// read data
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <param name="t">target data type</param>
+        /// <returns>readed object</returns>
         public static object ReadData(this TextReader stream, Type t)
         {
             var w = stream.ReadWord();
             var parse = t.GetMethod("Parse", new[] { typeof(string) });
-            return parse.Invoke(null, new[] { w });
+            return parse?.Invoke(null, new object[] { w });
         }
 
+        /// <summary>
+        /// skipped data
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <param name="t">read data type</param>
         public static void SkipData(this TextReader stream, Type t)
         {
             var w = stream.ReadWord();
@@ -93,6 +127,12 @@ namespace TinyPlyNet.Helpers
         #endregion
 
         #region write text
+        /// <summary>
+        /// write one data with sparation space
+        /// </summary>
+        /// <typeparam name="T">target type</typeparam>
+        /// <param name="stream">stream</param>
+        /// <param name="value">output value</param>
         public static void WriteData<T>(this TextWriter stream, T value)
         {
             stream.Write(value);

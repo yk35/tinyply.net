@@ -8,19 +8,32 @@ using System.Text;
 
 namespace TinyPlyNet.Helpers
 {
+    /// <summary>
+    /// Unbuffered TextReader 
+    /// </summary>
     public class UnbufferedStreamReader : TextReader
     {
-        Stream s;
+        /// <summary>
+        /// base strea,
+        /// </summary>
+        private Stream s;
 
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="stream">base stream</param>
         public UnbufferedStreamReader(Stream stream)
         {
-            s = stream;
+            this.s = stream;
         }
 
-        // This method assumes lines end with a line feed.
-        // You may need to modify this method if your stream
-        // follows the Windows convention of \r\n or some other 
-        // convention that isn't just \n
+        /// <summary>
+        /// This method assumes lines end with a line feed.
+        /// You may need to modify this method if your stream
+        /// follows the Windows convention of \r\n or some other 
+        /// convention that isn't just \n
+        /// </summary>
+        /// <returns>string that one line</returns>
         public override string ReadLine()
         {
             List<byte> bytes = new List<byte>();
@@ -33,16 +46,26 @@ namespace TinyPlyNet.Helpers
             return Encoding.UTF8.GetString(bytes.ToArray(), 0, bytes.Count);
         }
 
-        // Read works differently than the `Read()` method of a 
-        // TextReader. It reads the next BYTE rather than the next character
+
+        /// <summary>
+        /// Read works differently than the `Read()` method of a 
+        /// TextReader. It reads the next BYTE rather than the next character
+        /// </summary>
+        /// <returns>-1: eof other: char code</returns>
         public override int Read()
         {
-            return s.ReadByte();
+            return this.s.ReadByte();
         }
 
+        /// <summary>
+        /// dispose stream
+        /// </summary>
+        /// <param name="disposing">true: call from dispose() false: call from finalizer</param>
         protected override void Dispose(bool disposing)
         {
-            s.Dispose();
+            this.s?.Dispose();
+
+            this.s = null;
         }
 
         public override int Peek()
