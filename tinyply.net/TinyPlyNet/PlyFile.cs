@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -353,48 +354,65 @@ namespace TinyPlyNet
             }
         }
 
-        private void ReadBinaryInternal(Stream stream)
+        private void Read(Func<Type, object> readData, Action<Type> skipData)
         {
-            var bs = new BinaryReader(stream);
+            foreach (var element in Elements)
             {
-                foreach (var element in Elements)
+                var idx = _requestedElements.FindIndex(x => x == element.Name);
+                if (idx != -1)
                 {
-                    var idx = _requestedElements.FindIndex(x => x == element.Name);
-                    if (idx != -1)
+                    for (long count = 0; count < element.Size; ++count)
                     {
-                        for (long count = 0; count < element.Size; ++count)
+                        foreach (var property in element.Properties)
                         {
-                            foreach (var property in element.Properties)
+                            DataCursor cursor;
+                            if (_userDataTable.TryGetValue(Helper.MakeKey(element.Name, property.Name), out cursor))
                             {
-                                DataCursor cursor;
-                                if (_userDataTable.TryGetValue(Helper.MakeKey(element.Name, property.Name), out cursor))
+                                if (property.IsList)
                                 {
-                                    if (property.IsList)
+                                    uint listSize = 0;
+                                    listSize = Convert.ToUInt32(readData(property.ListType));
+
+
+                                    IList sourceList = cursor.vector;
+                                    if (cursor.isMultivector)
                                     {
-                                        uint listSize = 0;
-                                        listSize = (uint)bs.ReadData(property.ListType);
-                                        for (var i = 0; i < listSize; ++i)
-                                        {
-                                            cursor.vector.Add(bs.ReadData(property.PropertyType));
-                                        }
+                                        var listType = typeof(List<>);
+                                        var listGenericType = listType.MakeGenericType(property.PropertyType);
+                                        IList list = (IList)Activator.CreateInstance(listGenericType);
+                                        sourceList.Add(list);
+                                        sourceList = list;
                                     }
-                                    else
+
+                                    for (var i = 0; i < listSize; ++i)
                                     {
-                                        cursor.vector.Add(bs.ReadData(property.PropertyType));
+                                        sourceList.Add(readData(property.PropertyType));
                                     }
                                 }
                                 else
                                 {
-                                    bs.SkipData(property.PropertyType);
+                                    cursor.vector.Add(readData(property.PropertyType));
                                 }
+                            }
+                            else
+                            {
+                                skipData(property.PropertyType);
                             }
                         }
                     }
-                    else
-                    {
-                        continue;
-                    }
                 }
+                else
+                {
+                    continue;
+                }
+            }
+        }
+
+        private void ReadBinaryInternal(Stream stream)
+        {
+            var bs = new BinaryReader(stream);
+            {
+                Read(bs.ReadData, bs.SkipData);
             }
         }
 
@@ -402,58 +420,7 @@ namespace TinyPlyNet
         {
             var sr = new StreamReader(stream);
             {
-                foreach (var element in Elements)
-                {
-                    var idx = _requestedElements.FindIndex(x => x == element.Name);
-                    if (idx != -1)
-                    {
-                        for (long count = 0; count < element.Size; ++count)
-                        {
-                            foreach (var property in element.Properties)
-                            {
-                                DataCursor cursor;
-                                if (_userDataTable.TryGetValue(Helper.MakeKey(element.Name, property.Name), out cursor))
-                                {
-                                    if (property.IsList)
-                                    {
-                                        uint listSize = 0;
-                                        var listSizeString = sr.ReadData(property.ListType).ToString();
-                                        if (uint.TryParse(listSizeString, out listSize))
-                                        {
-                                            IList sourceList = cursor.vector;
-                                            if (cursor.isMultivector)
-                                            {
-                                                var listType = typeof(List<>);
-                                                var listGenericType = listType.MakeGenericType(property.PropertyType);
-                                                IList list = (IList)Activator.CreateInstance(listGenericType);
-                                                sourceList.Add(list);
-                                                sourceList = list;
-
-                                            }
-                                            for (var i = 0; i < listSize; ++i)
-                                            {
-                                                sourceList.Add(sr.ReadData(property.PropertyType));
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        cursor.vector.Add(sr.ReadData(property.PropertyType));
-                                    }
-                                }
-                                else
-                                {
-                                    sr.SkipData(property.PropertyType);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                }
+                Read(sr.ReadData, sr.SkipData);
             }
             sr.DiscardBufferedData();
         }
