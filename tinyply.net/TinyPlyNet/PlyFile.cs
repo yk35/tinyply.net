@@ -427,7 +427,9 @@ namespace TinyPlyNet
        
         private void ParseHeader(TextReader stream)
         {
+#pragma warning disable 0219
             bool gotMagic = false;
+#pragma warning restore 0219
             for (;;)
             {
                 var line = stream.ReadLine();
