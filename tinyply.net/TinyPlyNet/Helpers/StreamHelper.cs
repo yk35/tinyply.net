@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -106,8 +106,11 @@ namespace TinyPlyNet.Helpers
         public static object ReadData(this TextReader stream, Type t)
         {
             var w = stream.ReadWord();
-            var parse = t.GetMethod("Parse", new[] { typeof(string) });
-            return parse?.Invoke(null, new object[] { w });
+            if (w.ToLower() == "nan")
+            {
+                w = "NaN";
+            }
+            return Convert.ChangeType(w, t);
         }
 
         /// <summary>
