@@ -82,11 +82,15 @@ namespace TinyPlyNet
         public List<string> ObjInfo { get; set; }
 
         /// <summary>
-        /// is binary format?(currentry not supported)
+        /// is binary format?
         /// </summary>
         public bool IsBinary { get; set; }
 
-
+        /// <summary>
+        /// Is big endian encoding ?
+        /// </summary>
+        public bool IsBigEndian { get; set; }
+        
         /// <summary>
         /// read ply from stream
         /// </summary>
@@ -327,9 +331,16 @@ namespace TinyPlyNet
         {
             var s = line.ReadWord();
             if (s == "binary_little_endian")
+            {
                 IsBinary = true;
+                IsBigEndian = false;
+
+            }
             else if (s == "binary_big_endian")
-                throw new NotSupportedException("big endian formats are not supported!");
+            {
+                IsBinary = true;
+                IsBigEndian = true;
+            }
         }
 
         private void ReadHeaderProperty(TextReader stream)
@@ -412,7 +423,14 @@ namespace TinyPlyNet
         {
             var bs = new BinaryReader(stream);
             {
-                Read(bs.ReadData, bs.SkipData);
+                if (IsBigEndian)
+                {
+                    Read(bs.ReadDataBigEndian, bs.SkipData);
+                }
+                else
+                {
+                    Read(bs.ReadData, bs.SkipData);
+                }
             }
         }
 
