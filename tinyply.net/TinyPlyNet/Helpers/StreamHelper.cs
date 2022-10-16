@@ -120,7 +120,7 @@ namespace TinyPlyNet.Helpers
                         buf[2] = buf[5];
                         buf[5] = temp3;
 
-                        bute temp4 = buf[3];
+                        byte temp4 = buf[3];
                         buf[3] = buf[4];
                         buf[4] = temp4;
                     }
