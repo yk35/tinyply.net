@@ -84,6 +84,60 @@ namespace TinyPlyNet.Helpers
         }
 
         /// <summary>
+        /// read data big endian
+        /// </summary>
+        /// <param name="stream">stream</param>
+        /// <param name="t">read data type</param>
+        /// <returns>readed object</returns>
+        public static object ReadDataBigEndian(this BinaryReader stream, Type t)
+        {
+            var size = Marshal.SizeOf(t);
+            byte[] buf = new byte[size];
+            stream.Read(buf, 0, size);
+            switch (size)
+            {
+                case 4:
+                    {
+                        byte temp1 = buf[0];
+                        buf[0] = buf[3];
+                        buf[3] = temp1;
+                        byte temp2 = buf[1];
+                        buf[1] = buf[2];
+                        buf[2] = temp2;
+                    }
+                    break;
+                case 8:
+                    {
+                        byte temp1 = buf[0];
+                        buf[0] = buf[7];
+                        buf[7] = temp1;
+
+                        byte temp2 = buf[1];
+                        buf[1] = buf[6];
+                        buf[6] = temp2;
+
+                        byte temp3 = buf[2];
+                        buf[2] = buf[5];
+                        buf[5] = temp3;
+
+                        bute temp4 = buf[3];
+                        buf[3] = buf[4];
+                        buf[4] = temp4;
+                    }
+                    break;
+                case 2:
+                    {
+                        byte temp = buf[0];
+                        buf[0] = buf[1];
+                        buf[1] = temp;
+                    }
+                    break;
+            }
+
+            return ByteHelper.FromByteArray(buf, t);
+        }
+        
+        /// <summary>
         /// skipped data
         /// </summary>
         /// <param name="stream">stream</param>
