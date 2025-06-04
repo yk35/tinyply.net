@@ -185,7 +185,7 @@ namespace TinyPlyNet.Helpers
 
         #region write text
         /// <summary>
-        /// write one data with sparation space
+        /// write one data with separation space
         /// </summary>
         /// <typeparam name="T">target type</typeparam>
         /// <param name="stream">stream</param>
