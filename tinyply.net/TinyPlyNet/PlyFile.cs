@@ -245,7 +245,7 @@ namespace TinyPlyNet
         {
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
-                throw new ArgumentException("already exist property key {elementKey}");
+                throw new ArgumentException($"element '{elementKey}' already exists");
             }
 
             var propertyKeyList = propertyKeys.ToList();
@@ -300,7 +300,7 @@ namespace TinyPlyNet
         {
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
-                throw new ArgumentException("already exist property key {elementKey}");
+                throw new ArgumentException($"element '{elementKey}' already exists");
             }
 
             var cursor = new DataCursor();
