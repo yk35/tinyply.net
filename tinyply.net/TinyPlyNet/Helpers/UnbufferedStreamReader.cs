@@ -1,4 +1,4 @@
-﻿// oritinal source code http://stackoverflow.com/questions/520722/unbuffered-streamreader
+﻿// original source code http://stackoverflow.com/questions/520722/unbuffered-streamreader
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace TinyPlyNet.Helpers
     public class UnbufferedStreamReader : TextReader
     {
         /// <summary>
-        /// base strea,
+        /// base stream,
         /// </summary>
         private Stream s;
 

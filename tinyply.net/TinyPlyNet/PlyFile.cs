@@ -275,7 +275,7 @@ namespace TinyPlyNet
         /// <typeparam name="T">property data type</typeparam>
         /// <param name="elementKey">element name</param>
         /// <param name="propertyKey">list property name</param>
-        /// <param name="data">collection that stored writing data. data is multi dimentional list.</param>
+        /// <param name="data">collection that stored writing data. data is multi dimensional list.</param>
         public void AddListPropertyToElement<T>(
             string elementKey,
             string propertyKey,
@@ -290,7 +290,7 @@ namespace TinyPlyNet
         /// <typeparam name="T">property data type</typeparam>
         /// <param name="elementKey">element name</param>
         /// <param name="propertyKey">list property name</param>
-        /// <param name="data">collection that stored writing data. data is multi dimentional list.</param>
+        /// <param name="data">collection that stored writing data. data is multi dimensional list.</param>
         /// <param name="listCountType">type of number of property</param>
         public void AddListPropertyToElement<T>(
             string elementKey,

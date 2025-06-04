@@ -8,7 +8,7 @@ using TinyPlyNet.Helpers;
 namespace TinyPlyNet
 {
     /// <summary>
-    /// reprensentation of ply property
+    /// representation of ply property
     /// </summary>
     public class PlyProperty
     {
