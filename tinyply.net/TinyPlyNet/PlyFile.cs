@@ -243,19 +243,28 @@ namespace TinyPlyNet
             IEnumerable<string> propertyKeys,
             List<T> data)
         {
-            if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
-            {
-                throw new ArgumentException("already exist property key {elementKey}");
-            }
-
             var propertyKeyList = propertyKeys.ToList();
 
             var cursor = new DataCursor();
-            var plyElement = new PlyElement(elementKey);
-            plyElement.Size = data.Count / propertyKeyList.Count;
+            var plyElement = this.Elements.FirstOrDefault(x => x.Name == elementKey);
+            var elementSize = data.Count / propertyKeyList.Count;
+            if (plyElement == null)
+            {
+                plyElement = new PlyElement(elementKey);
+                plyElement.Size = elementSize;
+                this.Elements.Add(plyElement);
+            }
+            else if (plyElement.Size != elementSize)
+            {
+                throw new ArgumentException($"element size mismatch: {elementSize} != {plyElement.Size}");
+            }
             foreach (var key in propertyKeyList)
             {
                 var plyProperty = new PlyProperty(typeof(T), key);
+                if (plyElement.Properties.Any(p => p.Name == key))
+                {
+                    throw new ArgumentException($"already exist property key {key}");
+                }
                 plyElement.Properties.Add(plyProperty);
                 var userKey = Helper.MakeKey(elementKey, key);
                 if (this._userDataTable.ContainsKey(userKey))
@@ -265,7 +274,6 @@ namespace TinyPlyNet
 
                 this._userDataTable[userKey] = cursor;
             }
-            this.Elements.Add(plyElement);
             cursor.vector = data;
         }
 
@@ -298,14 +306,24 @@ namespace TinyPlyNet
             List<List<T>> data,
             Type listCountType)
         {
-            if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
+            var cursor = new DataCursor();
+            var plyElement = this.Elements.FirstOrDefault(x => x.Name == elementKey);
+            if (plyElement == null)
             {
-                throw new ArgumentException("already exist property key {elementKey}");
+                plyElement = new PlyElement(elementKey);
+                plyElement.Size = data.Count;
+                this.Elements.Add(plyElement);
+            }
+            else if (plyElement.Size != data.Count)
+            {
+                throw new ArgumentException($"element size mismatch: {data.Count} != {plyElement.Size}");
             }
 
-            var cursor = new DataCursor();
-            var plyElement = new PlyElement(elementKey);
-            plyElement.Size = data.Count;
+            if (plyElement.Properties.Any(p => p.Name == propertyKey))
+            {
+                throw new ArgumentException($"already exist property key {propertyKey}");
+            }
+
             var plyProperty = new PlyProperty(listCountType, typeof(T), propertyKey);
             plyElement.Properties.Add(plyProperty);
             var userKey = Helper.MakeKey(elementKey, propertyKey);
@@ -314,7 +332,6 @@ namespace TinyPlyNet
                 throw new Exception("property has already been requested: " + propertyKey);
             }
             this._userDataTable[userKey] = cursor;
-            this.Elements.Add(plyElement);
             cursor.vector = data;
             cursor.isMultivector = true;
         }
@@ -560,19 +577,24 @@ namespace TinyPlyNet
         {
             foreach (var element in this.Elements)
             {
-                var current = 0;
+                var indices = new Dictionary<DataCursor, int>();
                 for (uint i = 0; i < element.Size; ++i)
                 {
                     foreach (var prop in element.Properties)
                     {
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
+                        if (!indices.ContainsKey(data))
+                        {
+                            indices[data] = 0;
+                        }
+                        var current = indices[data];
                         if (prop.IsList)
                         {
                             if (!data.isMultivector)
                             {
                                 throw new NotSupportedException("list parameter supported only multi list data.");
                             }
-                            var listData = (IList) data.vector[current];
+                            var listData = (IList)data.vector[current];
                             writer.WriteData(listData.Count);
                             for (int j = 0; j < listData.Count; ++j)
                             {
@@ -583,7 +605,7 @@ namespace TinyPlyNet
                         {
                             writer.WriteData(data.vector[current]);
                         }
-                        current++;
+                        indices[data] = current + 1;
                     }
                     writer.WriteLine("");
                 }
