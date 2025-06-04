@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyPlyNet", "TinyPlyNet\Ti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyPlyNet.Example", "TinyPlyNet.Example\TinyPlyNet.Example.csproj", "{BF627B7A-2E6E-4954-90E0-69B3E282FE17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyPlyNet.Tests", "TinyPlyNet.Tests\TinyPlyNet.Tests.csproj", "{C47FAF62-BFCB-4E8B-A251-1B711BA0539C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{BF627B7A-2E6E-4954-90E0-69B3E282FE17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF627B7A-2E6E-4954-90E0-69B3E282FE17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF627B7A-2E6E-4954-90E0-69B3E282FE17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C47FAF62-BFCB-4E8B-A251-1B711BA0539C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C47FAF62-BFCB-4E8B-A251-1B711BA0539C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C47FAF62-BFCB-4E8B-A251-1B711BA0539C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C47FAF62-BFCB-4E8B-A251-1B711BA0539C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
