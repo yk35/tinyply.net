@@ -181,6 +181,30 @@ namespace TinyPlyNet.Helpers
 
         #region write
         #region write binary
+        /// <summary>
+        /// Write data in binary format
+        /// </summary>
+        /// <param name="stream">binary writer</param>
+        /// <param name="value">value to write</param>
+        /// <param name="t">type of value</param>
+        /// <param name="bigEndian">true if big endian</param>
+        public static void WriteData(this BinaryWriter stream, object value, Type t, bool bigEndian)
+        {
+            var converted = Convert.ChangeType(value, t);
+            var bytes = ByteHelper.ToByteArray(converted);
+            if (bigEndian)
+            {
+                switch (bytes.Length)
+                {
+                    case 2:
+                    case 4:
+                    case 8:
+                        Array.Reverse(bytes);
+                        break;
+                }
+            }
+            stream.Write(bytes);
+        }
         #endregion
 
         #region write text

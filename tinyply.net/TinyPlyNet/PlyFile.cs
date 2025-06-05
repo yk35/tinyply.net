@@ -501,7 +501,14 @@ namespace TinyPlyNet
             writer.WriteLine("ply");
             if (this.IsBinary)
             {
-                throw new NotImplementedException("not supported binary format");
+                if (this.IsBigEndian)
+                {
+                    writer.WriteLine("format binary_big_endian 1.0");
+                }
+                else
+                {
+                    writer.WriteLine("format binary_little_endian 1.0");
+                }
             }
             else
             {
@@ -553,7 +560,37 @@ namespace TinyPlyNet
 
         private void WriteBinaryInternal(Stream stream)
         {
-            throw new NotImplementedException();
+            var writer = new BinaryWriter(stream);
+            foreach (var element in this.Elements)
+            {
+                var current = 0;
+                for (uint i = 0; i < element.Size; ++i)
+                {
+                    foreach (var prop in element.Properties)
+                    {
+                        var data = this._userDataTable[Helper.MakeKey(element, prop)];
+                        if (prop.IsList)
+                        {
+                            if (!data.isMultivector)
+                            {
+                                throw new NotSupportedException("list parameter supported only multi list data.");
+                            }
+                            var listData = (IList)data.vector[current];
+                            writer.WriteData(listData.Count, prop.ListType, this.IsBigEndian);
+                            for (int j = 0; j < listData.Count; ++j)
+                            {
+                                writer.WriteData(listData[j]!, prop.PropertyType, this.IsBigEndian);
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteData(data.vector[current]!, prop.PropertyType, this.IsBigEndian);
+                        }
+                        current++;
+                    }
+                }
+            }
+            writer.Flush();
         }
 
         private void WriteTextInternal(TextWriter writer)
