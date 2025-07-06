@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using TinyPlyNet.Helpers;
 
 namespace TinyPlyNet
@@ -18,12 +15,12 @@ namespace TinyPlyNet
         /// <summary>
         /// data source
         /// </summary>
-        public IList vector { get; set; }
+        public IList? Vector { get; set; }
 
         /// <summary>
         /// multi vector source
         /// </summary>
-        public bool isMultivector { get; set; }= false;
+        public bool IsMultivector { get; set; }= false;
     }
 
     /// <summary>
@@ -56,7 +53,7 @@ namespace TinyPlyNet
         /// create for ply reading
         /// </summary>
         /// <param name="stream">stream of .ply file</param>
-        public PlyFile(Stream stream, bool isBinary = false)
+        public PlyFile(Stream stream)
         {
             this.Elements = new List<PlyElement>();
             this.Comments = new List<string>();
@@ -119,78 +116,128 @@ namespace TinyPlyNet
         /// <param name="propertyKeys">element properties(ex. "x","y","z")</param>
         /// <param name="data">collection that stored reading data</param>
         /// <returns>number of element datas</returns>
-        public int RequestPropertyFromElement<T>(string elementKey, IEnumerable<string> propertyKeys, List<T> data)
+        public int RequestPropertyFromElement<T>(string elementKey,
+            IEnumerable<string> propertyKeys,
+            List<T> data)
         {
             if (!this.Elements.Any())
             {
                 return 0;
             }
 
+            if (!ValidateAndRegisterElement(elementKey))
+            {
+                return 0;
+            }
+
+            var cursor = new DataCursor();
+            var propertyKeyList = propertyKeys.ToList();
+            var instanceCounts = CollectInstanceCounts<T>(elementKey, propertyKeyList, cursor);
+
+            if (instanceCounts.Count == 0)
+            {
+                return 0;
+            }
+
+            var totalInstanceSize = instanceCounts.Sum(x => x);
+            cursor.Vector = data;
+            return totalInstanceSize / propertyKeyList.Count;
+        }
+
+        /// <summary>
+        /// Validates if element exists and registers it if needed
+        /// </summary>
+        /// <param name="elementKey">Element key to validate</param>
+        /// <returns>True if element is valid, false otherwise</returns>
+        private bool ValidateAndRegisterElement(string elementKey)
+        {
             if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
             {
                 if (!this._requestedElements.Contains(elementKey))
                 {
                     this._requestedElements.Add(elementKey);
                 }
+                return true;
             }
-            else
-            {
-                return 0;
-            }
+            return false;
+        }
 
-            var cursor = new DataCursor();
-
+        /// <summary>
+        /// Counts instances of each property and registers them
+        /// </summary>
+        /// <typeparam name="T">Property data type</typeparam>
+        /// <param name="elementKey">Element key</param>
+        /// <param name="propertyKeyList">List of property keys</param>
+        /// <param name="cursor">Data cursor to associate with properties</param>
+        /// <returns>List of instance counts for each property</returns>
+        private List<int> CollectInstanceCounts<T>(string elementKey, List<string> propertyKeyList, DataCursor cursor)
+        {
             List<int> instanceCounts = new List<int>();
-
-            var propertyKeyList = propertyKeys.ToList();
-
-            int InstanceCounter(string propertyKey)
-            {
-                foreach (var e in this.Elements)
-                {
-                    if (e.Name != elementKey)
-                    {
-                        continue;
-                    }
-
-                    foreach (var p in e.Properties)
-                    {
-                        if (p.Name == propertyKey)
-                        {
-                            if (typeof(T) != p.PropertyType)
-                            {
-                                throw new Exception("destination vector is wrongly typed to hold this property");
-                            }
-
-                            return e.Size;
-                        }
-                    }
-                }
-                return 0;
-            }
 
             foreach (var key in propertyKeyList)
             {
-                var instanceCount = InstanceCounter(key);
+                var instanceCount = GetInstanceCount<T>(elementKey, key);
                 if (instanceCount != 0)
                 {
                     instanceCounts.Add(instanceCount);
-                    var userKey = Helper.MakeKey(elementKey, key);
-                    if (this._userDataTable.ContainsKey(userKey))
-                    {
-                        throw new Exception("property has already been requested: " + key);
-                    }
-
-                    this._userDataTable[userKey] = cursor;
+                    RegisterPropertyCursor(elementKey, key, cursor);
                 }
                 else
                 {
-                    return 0;
+                    return new List<int>(); // Return empty list to indicate failure
                 }
             }
-            var totalInstanceSize = instanceCounts.Sum(x => x);
-            cursor.vector = data;
-            return totalInstanceSize / propertyKeyList.Count;
+
+            return instanceCounts;
+        }
+
+        /// <summary>
+        /// Gets the instance count for a specific property
+        /// </summary>
+        /// <typeparam name="T">Property data type</typeparam>
+        /// <param name="elementKey">Element key</param>
+        /// <param name="propertyKey">Property key</param>
+        /// <returns>Number of instances, or 0 if property not found</returns>
+        private int GetInstanceCount<T>(string elementKey, string propertyKey)
+        {
+            foreach (var e in this.Elements)
+            {
+                if (e.Name != elementKey)
+                {
+                    continue;
+                }
+
+                foreach (var p in e.Properties)
+                {
+                    if (p.Name == propertyKey)
+                    {
+                        if (typeof(T) != p.PropertyType)
+                        {
+                            throw new Exception("destination vector is wrongly typed to hold this property");
+                        }
+
+                        return e.Size;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Registers a property cursor in the user data table
+        /// </summary>
+        /// <param name="elementKey">Element key</param>
+        /// <param name="propertyKey">Property key</param>
+        /// <param name="cursor">Data cursor to register</param>
+        private void RegisterPropertyCursor(string elementKey, string propertyKey, DataCursor cursor)
+        {
+            var userKey = Helper.MakeKey(elementKey, propertyKey);
+            if (this._userDataTable.ContainsKey(userKey))
+            {
+                throw new Exception("property has already been requested: " + propertyKey);
+            }
+
+            this._userDataTable[userKey] = cursor;
         }
 
         /// <summary>
@@ -227,8 +274,8 @@ namespace TinyPlyNet
                 throw new Exception("property has already been requested: " + propertyKey);
             }
             this._userDataTable[userKey] = cursor;
-            cursor.vector = data;
-            cursor.isMultivector = true;
+            cursor.Vector = data;
+            cursor.IsMultivector = true;
         }
 
         /// <summary>
@@ -266,7 +313,7 @@ namespace TinyPlyNet
                 this._userDataTable[userKey] = cursor;
             }
             this.Elements.Add(plyElement);
-            cursor.vector = data;
+            cursor.Vector = data;
         }
 
         /// <summary>
@@ -315,8 +362,8 @@ namespace TinyPlyNet
             }
             this._userDataTable[userKey] = cursor;
             this.Elements.Add(plyElement);
-            cursor.vector = data;
-            cursor.isMultivector = true;
+            cursor.Vector = data;
+            cursor.IsMultivector = true;
         }
 
 
@@ -394,8 +441,8 @@ namespace TinyPlyNet
                                     listSize = Convert.ToUInt32(readData(property.ListType));
 
 
-                                    IList sourceList = cursor.vector;
-                                    if (cursor.isMultivector)
+                                    IList sourceList = cursor.Vector;
+                                    if (cursor.IsMultivector)
                                     {
                                         var listType = typeof(List<>);
                                         var listGenericType = listType.MakeGenericType(property.PropertyType);
@@ -411,7 +458,7 @@ namespace TinyPlyNet
                                 }
                                 else
                                 {
-                                    cursor.vector.Add(readData(property.PropertyType));
+                                    cursor.Vector.Add(readData(property.PropertyType));
                                 }
                             }
                             else
@@ -581,11 +628,11 @@ namespace TinyPlyNet
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
                         if (prop.IsList)
                         {
-                            if (!data.isMultivector)
+                            if (!data.IsMultivector)
                             {
                                 throw new NotSupportedException("list parameter supported only multi list data.");
                             }
-                            var listData = (IList)data.vector[current];
+                            var listData = (IList)data.Vector[current];
                             writer.WriteData(listData.Count, prop.ListType, this.IsBigEndian);
                             for (int j = 0; j < listData.Count; ++j)
                             {
@@ -594,7 +641,7 @@ namespace TinyPlyNet
                         }
                         else
                         {
-                            writer.WriteData(data.vector[current]!, prop.PropertyType, this.IsBigEndian);
+                            writer.WriteData(data.Vector[current]!, prop.PropertyType, this.IsBigEndian);
                         }
                         current++;
                     }
@@ -615,11 +662,11 @@ namespace TinyPlyNet
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
                         if (prop.IsList)
                         {
-                            if (!data.isMultivector)
+                            if (!data.IsMultivector)
                             {
                                 throw new NotSupportedException("list parameter supported only multi list data.");
                             }
-                            var listData = (IList) data.vector[current];
+                            var listData = (IList) data.Vector[current];
                             writer.WriteData(listData.Count);
                             for (int j = 0; j < listData.Count; ++j)
                             {
@@ -628,7 +675,7 @@ namespace TinyPlyNet
                         }
                         else
                         {
-                            writer.WriteData(data.vector[current]);
+                            writer.WriteData(data.Vector[current]);
                         }
                         current++;
                     }

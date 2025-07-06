@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace TinyPlyNet.Helpers
@@ -16,7 +15,7 @@ namespace TinyPlyNet.Helpers
         /// <summary>
         /// base stream,
         /// </summary>
-        private Stream s;
+        private Stream? _s;
 
         /// <summary>
         /// constructor
@@ -24,7 +23,7 @@ namespace TinyPlyNet.Helpers
         /// <param name="stream">base stream</param>
         public UnbufferedStreamReader(Stream stream)
         {
-            this.s = stream;
+            this._s = stream;
         }
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace TinyPlyNet.Helpers
         {
             List<byte> bytes = new List<byte>();
             int current;
-            while ((current = Read()) != -1 && current != (int)'\n')
+            while ((current = Read()) != -1 && current != '\n')
             {
                 byte b = (byte)current;
                 bytes.Add(b);
@@ -54,7 +53,7 @@ namespace TinyPlyNet.Helpers
         /// <returns>-1: eof other: char code</returns>
         public override int Read()
         {
-            return this.s.ReadByte();
+            return this._s?.ReadByte() ?? -1;
         }
 
         /// <summary>
@@ -63,9 +62,9 @@ namespace TinyPlyNet.Helpers
         /// <param name="disposing">true: call from dispose() false: call from finalizer</param>
         protected override void Dispose(bool disposing)
         {
-            this.s?.Dispose();
+            this._s?.Dispose();
 
-            this.s = null;
+            this._s = null;
         }
 
         public override int Peek()

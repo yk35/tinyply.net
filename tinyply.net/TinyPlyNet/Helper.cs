@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace TinyPlyNet
 {
     public class PropertyInfo
     {
-        public int Stride { get; set; }
-        public string Str { get; set; }
+        public required int Stride { get; init; }
+        public required string Str { get; init; }
     }
 
     public static class Helper

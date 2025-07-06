@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -79,7 +78,7 @@ namespace TinyPlyNet.Helpers
         {
             var size = Marshal.SizeOf(t);
             byte[] buf = new byte[size];
-            stream.Read(buf, 0, size);
+            var _ = stream.Read(buf, 0, size);
             return ByteHelper.FromByteArray(buf, t);
         }
 
@@ -93,7 +92,7 @@ namespace TinyPlyNet.Helpers
         {
             var size = Marshal.SizeOf(t);
             byte[] buf = new byte[size];
-            stream.Read(buf, 0, size);
+            var _ = stream.Read(buf, 0, size);
             switch (size)
             {
                 case 4:
@@ -146,7 +145,7 @@ namespace TinyPlyNet.Helpers
         {
             var size = Marshal.SizeOf(t);
             byte[] buf = new byte[size];
-            stream.Read(buf, 0, size);
+            var _ = stream.Read(buf, 0, size);
         }
         #endregion
 
@@ -174,7 +173,7 @@ namespace TinyPlyNet.Helpers
         /// <param name="t">read data type</param>
         public static void SkipData(this TextReader stream, Type t)
         {
-            var w = stream.ReadWord();
+            var _ = stream.ReadWord();
         }
         #endregion
         #endregion read
