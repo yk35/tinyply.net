@@ -45,4 +45,28 @@ public class PlyFileTests
         Assert.Equal("ply", headerLine1);
         Assert.Equal("format ascii 1.0", headerLine2);
     }
+
+    [Fact]
+    public void WriteApplePly_HeaderIsBinary()
+    {
+        using var stream = File.OpenRead("apple.ply");
+        var file = new PlyFile(stream);
+        var vertices = new List<float>();
+        var faces = new List<List<int>>();
+        file.RequestPropertyFromElement("vertex", new[] { "x", "y", "z" }, vertices);
+        file.RequestListPropertyFromElement("face", "vertex_indices", faces);
+        file.Read(stream);
+
+        var writeFile = new PlyFile();
+        writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, vertices);
+        writeFile.AddListPropertyToElement("face", "vertex_indices", faces);
+        using var ms = new MemoryStream();
+        writeFile.Write(ms, true); // isBinary = true
+        ms.Position = 0;
+        using var reader = new StreamReader(ms);
+        string headerLine1 = reader.ReadLine();
+        string headerLine2 = reader.ReadLine();
+        Assert.Equal("ply", headerLine1);
+        Assert.Equal("format binary_little_endian 1.0", headerLine2);
+    }
 }

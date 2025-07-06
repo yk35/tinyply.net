@@ -36,7 +36,34 @@ namespace TinyPlyNet.Example
                     writeFile.AddListPropertyToElement("face", "vertex_indices", index);
                     writeFile.Write(writeStream);
                 }
+                
+                using (var writeStream = new FileStream("writeTestBinary.ply", FileMode.Create, FileAccess.Write))
+                {
+                    var writeFile = new PlyFile();
+                    writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
+                    writeFile.AddListPropertyToElement("face", "vertex_indices", index);
+                    writeFile.Write(writeStream, true); // true for binary format
+                }
             }
+            
+            using (var stream = new FileStream("writeTestBinary.ply", FileMode.Open, FileAccess.Read))
+            {
+                var f = new PlyFile(stream);
+                var xyz = new List<float>();
+                f.RequestPropertyFromElement("vertex", new[] { "x", "y", "z" }, xyz);
+                var index = new List<List<int>>();
+                f.RequestListPropertyFromElement("face", "vertex_indices", index);
+                f.Read(stream);
+                foreach (var e in xyz)
+                {
+                    Console.WriteLine("{0}", e);
+                }
+                foreach (var i in index)
+                {
+                    Console.WriteLine("{0}", i.Count);
+                }
+            }
+
         }
     }
 }

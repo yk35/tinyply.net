@@ -56,7 +56,7 @@ namespace TinyPlyNet
         /// create for ply reading
         /// </summary>
         /// <param name="stream">stream of .ply file</param>
-        public PlyFile(Stream stream)
+        public PlyFile(Stream stream, bool isBinary = false)
         {
             this.Elements = new List<PlyElement>();
             this.Comments = new List<string>();
@@ -341,6 +341,15 @@ namespace TinyPlyNet
                 IsBinary = true;
                 IsBigEndian = true;
             }
+            else if (s == "ascii")
+            {
+                IsBinary = false;
+                IsBigEndian = false;
+            }
+            else
+            {
+                throw new Exception("invalid format");
+            }
         }
 
         private void ReadHeaderProperty(TextReader stream)
@@ -549,13 +558,14 @@ namespace TinyPlyNet
             this.WriteHeader(streamWriter);
             if (this.IsBinary)
             {
+                streamWriter.Flush();
                 this.WriteBinaryInternal(stream);
             }
             else
             {
                 this.WriteTextInternal(streamWriter);
+                streamWriter.Flush();
             }
-            streamWriter.Flush();
         }
 
         private void WriteBinaryInternal(Stream stream)
