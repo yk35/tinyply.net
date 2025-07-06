@@ -23,6 +23,7 @@ namespace TinyPlyNet
             {typeof(double),  new PropertyInfo() { Stride=8, Str = "double" } }
         };
 
+        // ReSharper disable once CognitiveComplexity
         public static Type PropertyTypeFromString(string t)
         {
             if (t == "int8" || t == "char") return typeof(sbyte);
@@ -33,7 +34,7 @@ namespace TinyPlyNet
             if (t == "uint32" || t == "uint") return typeof(uint);
             if (t == "float32" || t == "float") return typeof(float);
             if (t == "float64" || t == "double") return typeof(double);
-            return null;
+            throw new NotSupportedException("not supported type");
         }
 
         public static string MakeKey(string a, string b)
