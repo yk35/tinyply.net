@@ -66,17 +66,17 @@ namespace TinyPlyNet
         /// <summary>
         /// comments
         /// </summary>
-        public List<string> Comments { get; set; }
+        public List<string> Comments { get; set; } = new List<string>();
 
         /// <summary>
         /// elements
         /// </summary>
-        public List<PlyElement> Elements { get; set; }
-        
+        public List<PlyElement> Elements { get; set; } = new List<PlyElement>();
+
         /// <summary>
         /// object information
         /// </summary>
-        public List<string> ObjInfo { get; set; }
+        public List<string> ObjInfo { get; set; } = new List<string>();
 
         /// <summary>
         /// is binary format?
@@ -435,7 +435,7 @@ namespace TinyPlyNet
                             DataCursor cursor;
                             if (_userDataTable.TryGetValue(Helper.MakeKey(element.Name, property.Name), out cursor))
                             {
-                                if (property.IsList)
+                                if (property.IsList && property.ListType != null)
                                 {
                                     uint listSize = 0;
                                     listSize = Convert.ToUInt32(readData(property.ListType));
@@ -453,7 +453,11 @@ namespace TinyPlyNet
 
                                     for (var i = 0; i < listSize; ++i)
                                     {
-                                        sourceList.Add(readData(property.PropertyType));
+                                        var propertyData = readData(property.PropertyType);
+                                        if (propertyData != null)
+                                        {
+                                            sourceList.Add(propertyData);
+                                        }
                                     }
                                 }
                                 else
@@ -501,10 +505,8 @@ namespace TinyPlyNet
        
         private void ParseHeader(TextReader stream)
         {
-#pragma warning disable 0219
             bool gotMagic = false;
-#pragma warning restore 0219
-            for (;;)
+            while (true)
             {
                 var line = stream.ReadLine();
                 using (var ls = new StringReader(line))
@@ -636,7 +638,11 @@ namespace TinyPlyNet
                             writer.WriteData(listData.Count, prop.ListType, this.IsBigEndian);
                             for (int j = 0; j < listData.Count; ++j)
                             {
-                                writer.WriteData(listData[j]!, prop.PropertyType, this.IsBigEndian);
+                                var item = listData[j];
+                                if (item != null)
+                                {
+                                    writer.WriteData(item, prop.PropertyType, this.IsBigEndian);
+                                }
                             }
                         }
                         else
@@ -670,7 +676,11 @@ namespace TinyPlyNet
                             writer.WriteData(listData.Count);
                             for (int j = 0; j < listData.Count; ++j)
                             {
-                                writer.WriteData(listData[j]);
+                                var item = listData[j];
+                                if (item != null)
+                                {
+                                    writer.WriteData(item);
+                                }
                             }
                         }
                         else

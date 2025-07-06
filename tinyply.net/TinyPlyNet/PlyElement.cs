@@ -16,7 +16,7 @@ namespace TinyPlyNet
         public PlyElement(TextReader stream)
         {
             Properties = new List<PlyProperty>();
-            parseInternal(stream);
+            ParseInternal(stream);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace TinyPlyNet
         /// <summary>
         /// element name
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// number of element values
@@ -43,9 +43,9 @@ namespace TinyPlyNet
         /// <summary>
         /// properties
         /// </summary>
-        public List<PlyProperty> Properties { get; set; }
+        public List<PlyProperty> Properties { get; private set; }
 
-        private void parseInternal(TextReader stream)
+        private void ParseInternal(TextReader stream)
         {
             Name = stream.ReadWord();
             Size = int.Parse(stream.ReadWord());
