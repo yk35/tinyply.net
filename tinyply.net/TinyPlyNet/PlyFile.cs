@@ -634,6 +634,7 @@ namespace TinyPlyNet
                     foreach (var prop in element.Properties)
                     {
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
+                        if (data.Vector is null)
                         if (prop.IsList)
                         {
                             if (!data.IsMultivector)
