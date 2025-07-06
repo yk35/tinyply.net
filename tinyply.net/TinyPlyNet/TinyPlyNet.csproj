@@ -4,7 +4,6 @@
     <RootNamespace>TinyPlyNet</RootNamespace>
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>12</LangVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -15,6 +14,8 @@
     <Compile Include="PlyElement.cs" />
     <Compile Include="PlyFile.cs" />
     <Compile Include="PlyProperty.cs" />
-    <Compile Include="Properties/AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
