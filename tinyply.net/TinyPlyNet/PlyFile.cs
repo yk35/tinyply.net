@@ -236,7 +236,7 @@ namespace TinyPlyNet
             var userKey = Helper.MakeKey(elementKey, propertyKey);
             if (this._userDataTable.ContainsKey(userKey))
             {
-                throw new Exception("property has already been requested: " + propertyKey);
+                throw new InvalidOperationException("property has already been requested: " + propertyKey);
             }
 
             this._userDataTable[userKey] = cursor;
@@ -634,7 +634,6 @@ namespace TinyPlyNet
                     foreach (var prop in element.Properties)
                     {
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
-                        if (data.Vector is null)
                         if (prop.IsList)
                         {
                             if (!data.IsMultivector)

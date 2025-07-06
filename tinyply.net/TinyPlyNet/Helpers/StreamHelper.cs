@@ -78,7 +78,7 @@ namespace TinyPlyNet.Helpers
         {
             var size = Marshal.SizeOf(t);
             byte[] buf = new byte[size];
-            var _ = stream.Read(buf, 0, size);
+            _ = stream.Read(buf, 0, size);
             return ByteHelper.FromByteArray(buf, t);
         }
 
@@ -92,7 +92,7 @@ namespace TinyPlyNet.Helpers
         {
             var size = Marshal.SizeOf(t);
             byte[] buf = new byte[size];
-            var _ = stream.Read(buf, 0, size);
+            _ = stream.Read(buf, 0, size);
             switch (size)
             {
                 case 4:
