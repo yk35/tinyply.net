@@ -15,7 +15,7 @@ namespace TinyPlyNet
         /// <summary>
         /// data source
         /// </summary>
-        public IList? Vector { get; set; }
+        public required IList Vector { get; set; }
 
         /// <summary>
         /// multi vector source
@@ -130,7 +130,10 @@ namespace TinyPlyNet
                 return 0;
             }
 
-            var cursor = new DataCursor();
+            var cursor = new DataCursor()
+            {
+                Vector = data
+            };
             var propertyKeyList = propertyKeys.ToList();
             var instanceCounts = CollectInstanceCounts<T>(elementKey, propertyKeyList, cursor);
 
@@ -140,7 +143,6 @@ namespace TinyPlyNet
             }
 
             var totalInstanceSize = instanceCounts.Sum(x => x);
-            cursor.Vector = data;
             return totalInstanceSize / propertyKeyList.Count;
         }
 
@@ -266,16 +268,17 @@ namespace TinyPlyNet
                 return;
             }
 
-            var cursor = new DataCursor();
-
             var userKey = Helper.MakeKey(elementKey, propertyKey);
             if (this._userDataTable.ContainsKey(userKey))
             {
                 throw new Exception("property has already been requested: " + propertyKey);
             }
-            this._userDataTable[userKey] = cursor;
-            cursor.Vector = data;
-            cursor.IsMultivector = true;
+
+            this._userDataTable[userKey] = new DataCursor()
+            {
+                Vector = data,
+                IsMultivector = true
+            };
         }
 
         /// <summary>
@@ -297,7 +300,10 @@ namespace TinyPlyNet
 
             var propertyKeyList = propertyKeys.ToList();
 
-            var cursor = new DataCursor();
+            var cursor = new DataCursor()
+            {
+                Vector = data
+            };
             var plyElement = new PlyElement(elementKey);
             plyElement.Size = data.Count / propertyKeyList.Count;
             foreach (var key in propertyKeyList)
@@ -313,7 +319,6 @@ namespace TinyPlyNet
                 this._userDataTable[userKey] = cursor;
             }
             this.Elements.Add(plyElement);
-            cursor.Vector = data;
         }
 
         /// <summary>
@@ -350,7 +355,11 @@ namespace TinyPlyNet
                 throw new ArgumentException($"element '{elementKey}' already exists");
             }
 
-            var cursor = new DataCursor();
+            var cursor = new DataCursor()
+            {
+                Vector = data,
+                IsMultivector = true
+            };
             var plyElement = new PlyElement(elementKey);
             plyElement.Size = data.Count;
             var plyProperty = new PlyProperty(listCountType, typeof(T), propertyKey);
@@ -362,8 +371,6 @@ namespace TinyPlyNet
             }
             this._userDataTable[userKey] = cursor;
             this.Elements.Add(plyElement);
-            cursor.Vector = data;
-            cursor.IsMultivector = true;
         }
 
 
@@ -439,7 +446,6 @@ namespace TinyPlyNet
                                 {
                                     uint listSize = 0;
                                     listSize = Convert.ToUInt32(readData(property.ListType));
-
 
                                     IList sourceList = cursor.Vector;
                                     if (cursor.IsMultivector)
@@ -628,6 +634,7 @@ namespace TinyPlyNet
                     foreach (var prop in element.Properties)
                     {
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
+                        if (data.Vector is null)
                         if (prop.IsList)
                         {
                             if (!data.IsMultivector)

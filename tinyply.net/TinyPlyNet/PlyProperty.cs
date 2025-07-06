@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using TinyPlyNet.Helpers;
 
@@ -51,6 +52,8 @@ namespace TinyPlyNet
 
         public Type? ListType { get; private set; }
         public Type PropertyType { get; private set; }
+
+        [MemberNotNullWhen(true, nameof(ListType))]
         public bool IsList { get; private set; }
         public string Name { get; private set; }
 
