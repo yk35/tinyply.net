@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using TinyPlyNet.Helpers;
 
 namespace TinyPlyNet
@@ -18,7 +15,11 @@ namespace TinyPlyNet
         /// <param name="stream">text source</param>
         public PlyProperty(TextReader stream)
         {
-            parseInternal(stream);
+            IsList = false;
+            ListType = null;
+            Name = string.Empty;
+            PropertyType = typeof(object);
+            ParseInternal(stream);
         }
 
         /// <summary>
@@ -39,8 +40,7 @@ namespace TinyPlyNet
         /// </summary>
         /// <param name="listType">number of property list type</param>
         /// <param name="propType">property type</param>
-        /// <param name="name">propety name</param>
-        /// <param name="listCount">number of list</param>
+        /// <param name="name">property name</param>
         public PlyProperty(Type listType, Type propType, string name)
         {
             IsList = true;
@@ -49,12 +49,12 @@ namespace TinyPlyNet
             Name = name;
         }
 
-        public Type ListType { get; set; }
-        public Type PropertyType { get; set; }
-        public bool IsList { get; set; }
-        public string Name { get; set; }
+        public Type? ListType { get; private set; }
+        public Type PropertyType { get; private set; }
+        public bool IsList { get; private set; }
+        public string Name { get; private set; }
 
-        private void parseInternal(TextReader stream)
+        private void ParseInternal(TextReader stream)
         {
             var t = stream.ReadWord();
             if (t == "list")
