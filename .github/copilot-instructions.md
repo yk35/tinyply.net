@@ -107,7 +107,7 @@ The console example requires special handling due to .NET Framework target:
    EOF
    
    # Copy sample file and test
-   cp /home/runner/work/tinyply.net/tinyply.net/tinyply.net/TinyPlyNet.Example/apple.ply .
+   cp ../../../tinyply.net/TinyPlyNet.Example/apple.ply .
    dotnet run apple.ply
    ```
 
