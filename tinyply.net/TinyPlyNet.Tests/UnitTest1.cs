@@ -99,4 +99,32 @@ public class PlyFileTests
         Assert.Equal(9, writeFile.Elements[0].Properties.Count); // x,y,z,nx,ny,nz,red,green,blue
         Assert.Equal(2, writeFile.Elements[0].Size); // 2 vertices
     }
+
+    [Fact]
+    public void AddPropertiesToElement_DuplicatePropertyName_ShouldThrowException()
+    {
+        var xyz = new List<float> { 1.0f, 2.0f, 3.0f };
+        var duplicateProperty = new List<float> { 4.0f };
+
+        var writeFile = new PlyFile();
+        writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
+
+        // Adding a property with the same name should throw an exception
+        Assert.Throws<Exception>(() =>
+            writeFile.AddPropertiesToElement("vertex", new[] { "x" }, duplicateProperty));
+    }
+
+    [Fact]
+    public void AddPropertiesToElement_InconsistentElementSize_ShouldThrowException()
+    {
+        var xyz = new List<float> { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f };  // 2 vertices (6 values / 3 properties)
+        var inconsistentData = new List<float> { 0.1f, 0.2f, 0.3f };  // 1 vertex (3 values / 3 properties)
+
+        var writeFile = new PlyFile();
+        writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
+
+        // Adding properties with inconsistent element size should throw an exception
+        Assert.Throws<ArgumentException>(() =>
+            writeFile.AddPropertiesToElement("vertex", new[] { "nx", "ny", "nz" }, inconsistentData));
+    }
 }
