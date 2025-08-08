@@ -293,32 +293,49 @@ namespace TinyPlyNet
             IEnumerable<string> propertyKeys,
             List<T> data)
         {
-            if (this.Elements.FindIndex(x => x.Name == elementKey) >= 0)
-            {
-                throw new ArgumentException($"element '{elementKey}' already exists");
-            }
-
             var propertyKeyList = propertyKeys.ToList();
-
             var cursor = new DataCursor()
             {
                 Vector = data
             };
-            var plyElement = new PlyElement(elementKey);
-            plyElement.Size = data.Count / propertyKeyList.Count;
+
+            // Check if element already exists
+            var existingElementIndex = this.Elements.FindIndex(x => x.Name == elementKey);
+            PlyElement plyElement;
+            
+            if (existingElementIndex >= 0)
+            {
+                // Element exists, use the existing one
+                plyElement = this.Elements[existingElementIndex];
+                
+                // Validate that the element size is consistent
+                var expectedElementSize = data.Count / propertyKeyList.Count;
+                if (plyElement.Size != expectedElementSize)
+                {
+                    throw new ArgumentException($"Element size mismatch for '{elementKey}'. Expected {plyElement.Size}, but got {expectedElementSize}");
+                }
+            }
+            else
+            {
+                // Element doesn't exist, create a new one
+                plyElement = new PlyElement(elementKey);
+                plyElement.Size = data.Count / propertyKeyList.Count;
+                this.Elements.Add(plyElement);
+            }
+
+            // Add properties to the element
             foreach (var key in propertyKeyList)
             {
-                var plyProperty = new PlyProperty(typeof(T), key);
-                plyElement.Properties.Add(plyProperty);
                 var userKey = Helper.MakeKey(elementKey, key);
                 if (this._userDataTable.ContainsKey(userKey))
                 {
                     throw new Exception("property has already been requested: " + key);
                 }
 
+                var plyProperty = new PlyProperty(typeof(T), key);
+                plyElement.Properties.Add(plyProperty);
                 this._userDataTable[userKey] = cursor;
             }
-            this.Elements.Add(plyElement);
         }
 
         /// <summary>
@@ -628,20 +645,28 @@ namespace TinyPlyNet
             var writer = new BinaryWriter(stream);
             foreach (var element in this.Elements)
             {
-                var current = 0;
+                // Track current index for each unique DataCursor
+                var cursorIndices = new Dictionary<DataCursor, int>();
+                
                 for (uint i = 0; i < element.Size; ++i)
                 {
                     foreach (var prop in element.Properties)
                     {
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
                         if (data.Vector is null)
+                            continue;
+
+                        // Get or initialize the current index for this DataCursor
+                        if (!cursorIndices.ContainsKey(data))
+                            cursorIndices[data] = 0;
+
                         if (prop.IsList)
                         {
                             if (!data.IsMultivector)
                             {
                                 throw new NotSupportedException("list parameter supported only multi list data.");
                             }
-                            var listData = (IList)data.Vector[current];
+                            var listData = (IList)data.Vector[cursorIndices[data]];
                             writer.WriteData(listData.Count, prop.ListType, this.IsBigEndian);
                             for (int j = 0; j < listData.Count; ++j)
                             {
@@ -654,9 +679,9 @@ namespace TinyPlyNet
                         }
                         else
                         {
-                            writer.WriteData(data.Vector[current]!, prop.PropertyType, this.IsBigEndian);
+                            writer.WriteData(data.Vector[cursorIndices[data]]!, prop.PropertyType, this.IsBigEndian);
                         }
-                        current++;
+                        cursorIndices[data]++;
                     }
                 }
             }
@@ -667,19 +692,26 @@ namespace TinyPlyNet
         {
             foreach (var element in this.Elements)
             {
-                var current = 0;
+                // Track current index for each unique DataCursor
+                var cursorIndices = new Dictionary<DataCursor, int>();
+                
                 for (uint i = 0; i < element.Size; ++i)
                 {
                     foreach (var prop in element.Properties)
                     {
                         var data = this._userDataTable[Helper.MakeKey(element, prop)];
+                        
+                        // Get or initialize the current index for this DataCursor
+                        if (!cursorIndices.ContainsKey(data))
+                            cursorIndices[data] = 0;
+
                         if (prop.IsList)
                         {
                             if (!data.IsMultivector)
                             {
                                 throw new NotSupportedException("list parameter supported only multi list data.");
                             }
-                            var listData = (IList) data.Vector[current];
+                            var listData = (IList) data.Vector[cursorIndices[data]];
                             writer.WriteData(listData.Count);
                             for (int j = 0; j < listData.Count; ++j)
                             {
@@ -692,9 +724,9 @@ namespace TinyPlyNet
                         }
                         else
                         {
-                            writer.WriteData(data.Vector[current]);
+                            writer.WriteData(data.Vector[cursorIndices[data]]);
                         }
-                        current++;
+                        cursorIndices[data]++;
                     }
                     writer.WriteLine("");
                 }
