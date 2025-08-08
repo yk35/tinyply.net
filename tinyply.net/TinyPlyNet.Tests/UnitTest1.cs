@@ -69,4 +69,62 @@ public class PlyFileTests
         Assert.Equal("ply", headerLine1);
         Assert.Equal("format binary_little_endian 1.0", headerLine2);
     }
+
+    [Fact]
+    public void AddPropertiesToElement_MultipleCallsSameElement_ShouldSucceed()
+    {
+        // Test reproducing the issue from the GitHub issue
+        var xyz = new List<float> { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f };  // 2 vertices
+        var normals = new List<float> { 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f };  // 2 vertices  
+        var rgb = new List<byte> { 255, 0, 0, 0, 255, 0 };  // 2 vertices
+
+        var writeFile = new PlyFile();
+        
+        // This should work - first call creates the vertex element
+        writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
+        
+        // This should also work - second call adds more properties to existing vertex element
+        writeFile.AddPropertiesToElement("vertex", new[] { "nx", "ny", "nz" }, normals);
+        
+        // This should also work - third call adds color properties to existing vertex element
+        writeFile.AddPropertiesToElement("vertex", new[] { "red", "green", "blue" }, rgb);
+
+        // Verify we can write the file without issues
+        using var ms = new MemoryStream();
+        writeFile.Write(ms);
+        
+        // Verify the file structure - should have one vertex element with 9 properties
+        Assert.Single(writeFile.Elements);
+        Assert.Equal("vertex", writeFile.Elements[0].Name);
+        Assert.Equal(9, writeFile.Elements[0].Properties.Count); // x,y,z,nx,ny,nz,red,green,blue
+        Assert.Equal(2, writeFile.Elements[0].Size); // 2 vertices
+    }
+
+    [Fact]
+    public void AddPropertiesToElement_DuplicatePropertyName_ShouldThrowException()
+    {
+        var xyz = new List<float> { 1.0f, 2.0f, 3.0f };
+        var duplicateProperty = new List<float> { 4.0f };
+
+        var writeFile = new PlyFile();
+        writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
+
+        // Adding a property with the same name should throw an exception
+        Assert.Throws<Exception>(() =>
+            writeFile.AddPropertiesToElement("vertex", new[] { "x" }, duplicateProperty));
+    }
+
+    [Fact]
+    public void AddPropertiesToElement_InconsistentElementSize_ShouldThrowException()
+    {
+        var xyz = new List<float> { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f };  // 2 vertices (6 values / 3 properties)
+        var inconsistentData = new List<float> { 0.1f, 0.2f, 0.3f };  // 1 vertex (3 values / 3 properties)
+
+        var writeFile = new PlyFile();
+        writeFile.AddPropertiesToElement("vertex", new[] { "x", "y", "z" }, xyz);
+
+        // Adding properties with inconsistent element size should throw an exception
+        Assert.Throws<ArgumentException>(() =>
+            writeFile.AddPropertiesToElement("vertex", new[] { "nx", "ny", "nz" }, inconsistentData));
+    }
 }
