@@ -50,11 +50,25 @@ namespace TinyPlyNet
             Name = name;
         }
 
+        /// <summary>
+        /// Type of the list count property (only applicable for list properties)
+        /// </summary>
         public Type? ListType { get; private set; }
+        
+        /// <summary>
+        /// Type of the property data
+        /// </summary>
         public Type PropertyType { get; private set; }
 
+        /// <summary>
+        /// Indicates whether this property is a list property
+        /// </summary>
         [MemberNotNullWhen(true, nameof(ListType))]
         public bool IsList { get; private set; }
+        
+        /// <summary>
+        /// Name of the property
+        /// </summary>
         public string Name { get; private set; }
 
         private void ParseInternal(TextReader stream)

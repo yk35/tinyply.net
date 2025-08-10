@@ -3,14 +3,30 @@ using System.Collections.Generic;
 
 namespace TinyPlyNet
 {
+    /// <summary>
+    /// Information about PLY property types
+    /// </summary>
     public class PropertyInfo
     {
+        /// <summary>
+        /// Size in bytes of the property type
+        /// </summary>
         public required int Stride { get; init; }
+        
+        /// <summary>
+        /// String representation of the property type for PLY format
+        /// </summary>
         public required string Str { get; init; }
     }
 
+    /// <summary>
+    /// Helper methods for PLY file processing
+    /// </summary>
     public static class Helper
     {
+        /// <summary>
+        /// Mapping of .NET types to PLY property information (type name and byte size)
+        /// </summary>
         public static Dictionary<Type, PropertyInfo> PropertyTable = new Dictionary<Type, PropertyInfo>()
         {
             {typeof(sbyte), new PropertyInfo() { Stride=1, Str = "char" } },
@@ -23,6 +39,12 @@ namespace TinyPlyNet
             {typeof(double),  new PropertyInfo() { Stride=8, Str = "double" } }
         };
 
+        /// <summary>
+        /// Converts PLY property type string to .NET Type
+        /// </summary>
+        /// <param name="t">PLY property type string (e.g., "int8", "float", "double")</param>
+        /// <returns>.NET Type corresponding to the PLY property type</returns>
+        /// <exception cref="NotSupportedException">Thrown when the property type is not supported</exception>
         // ReSharper disable once CognitiveComplexity
         public static Type PropertyTypeFromString(string t)
         {
@@ -37,6 +59,12 @@ namespace TinyPlyNet
             throw new NotSupportedException("not supported type");
         }
 
+        /// <summary>
+        /// Creates a unique key by combining two strings
+        /// </summary>
+        /// <param name="a">First string</param>
+        /// <param name="b">Second string</param>
+        /// <returns>Combined key in format "a-b"</returns>
         public static string MakeKey(string a, string b)
         {
             return a + "-" + b;
