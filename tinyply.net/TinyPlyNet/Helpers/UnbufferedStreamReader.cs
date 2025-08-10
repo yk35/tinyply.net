@@ -67,21 +67,47 @@ namespace TinyPlyNet.Helpers
             this._s = null;
         }
 
+        /// <summary>
+        /// Not implemented - throws NotImplementedException
+        /// </summary>
+        /// <returns>N/A</returns>
+        /// <exception cref="NotImplementedException">Always thrown</exception>
         public override int Peek()
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Not implemented - throws NotImplementedException
+        /// </summary>
+        /// <param name="buffer">N/A</param>
+        /// <param name="index">N/A</param>
+        /// <param name="count">N/A</param>
+        /// <returns>N/A</returns>
+        /// <exception cref="NotImplementedException">Always thrown</exception>
         public override int Read(char[] buffer, int index, int count)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Not implemented - throws NotImplementedException
+        /// </summary>
+        /// <param name="buffer">N/A</param>
+        /// <param name="index">N/A</param>
+        /// <param name="count">N/A</param>
+        /// <returns>N/A</returns>
+        /// <exception cref="NotImplementedException">Always thrown</exception>
         public override int ReadBlock(char[] buffer, int index, int count)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Not implemented - throws NotImplementedException
+        /// </summary>
+        /// <returns>N/A</returns>
+        /// <exception cref="NotImplementedException">Always thrown</exception>
         public override string ReadToEnd()
         {
             throw new NotImplementedException();
